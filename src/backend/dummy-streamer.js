@@ -41,7 +41,7 @@ var dummyStreamer = {
     var elNum = 0;
     for ( i = 0; i <= 1; i += (1/elements) ) {
       x = i;
-      this.packetContent[elNum] = Math.sin( counter ) / 2.0 + 0.5;
+      this.packetContent[elNum] = Math.sin( counter ) / 2.0;// - 0.5;
       elNum++;
       counter += increase;
     }
