@@ -8,7 +8,7 @@ var dummyStreamer = {
   paused: false,
   packetInterval: 100,
   packetContent: null, // four byte array
-  packetSize: 1024,
+  packetSize: 512,
   start: function(){
     this.setupDummyPacket(this.packetSize);
     console.log(`packets starting`);
@@ -37,12 +37,12 @@ var dummyStreamer = {
 
     var counter = 0;
     // 100 iterations
-    var increase = Math.PI * 4 / 1024;
+    var increase = Math.PI * 4 / elements;
     var elNum = 0;
-    for ( i = 0; i <= 1; i += (1/1024) ) {
+    for ( i = 0; i <= 1; i += (1/elements) ) {
       x = i;
-      this.packetContent[elNum++] = Math.sin( counter ) / 2.0;// + 0.5;
-
+      this.packetContent[elNum] = Math.sin( counter ) / 2.0 + 0.5;
+      elNum++;
       counter += increase;
     }
 

@@ -454,7 +454,7 @@ var Render =
 		this.blur2Texture = this.makeTexture(256, 256);
 		this.blur3Texture = this.makeTexture(32, 32);
 		this.blur4Texture = this.makeTexture(32, 32);
-		this.screenTexture = this.loadTexture('noise.jpg');
+		this.screenTexture = this.loadTexture('static/noise.jpg');
 
 		// test floating point textures working
 		this.activateTargetTexture(this.lineTexture);

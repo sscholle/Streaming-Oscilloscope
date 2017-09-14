@@ -1,3 +1,21 @@
+var express = require('express');
+var app = express();
+var router = express.Router();
+var http = require('http').Server(app);
+var port = process.env.PORT || 8000;
+app.get('/', function(req, res){
+  res.sendFile(__dirname + '/src/frontend/index.html');
+});
+//app.use(express.static('public'));
+app.use('/static', express.static(__dirname+'/src/frontend/public'))
+//express.use(, );
+//router.use(express.static(__dirname + '/src/frontend/public'));
+http.listen(port, function(){
+  console.log('listening on *:' + port);
+});
+
+
+
 // use websocket server and listen to client connects
 // message responses will be echoed in uppercase
 
@@ -13,7 +31,7 @@
 const SOCKET_PORT = 8080;
 
 var bytesWritten = 0;
-var readableStream = require('./dummy-streamer'); // use a dummy streamer for testing
+var readableStream = require('./src/backend/dummy-streamer'); // use a dummy streamer for testing
 var ws = require("nodejs-websocket");
 
 /**
@@ -21,9 +39,11 @@ var ws = require("nodejs-websocket");
   **/
 
 var server = ws.createServer().listen(SOCKET_PORT);
+
 server.on("error", function(error) {
     console.log("Server Error");
 });
+
 server.on("connection", function(conn) {
   console.log("New connection");
   conn.on("text", function (str) {
@@ -87,39 +107,4 @@ server.on("connection", function(conn) {
     //readableStream = null;
     bytesWritten = 0;
   });
-
-
 });
-
-
-
-
-
-// var Readable = require('stream').Readable,
-//     util = require('util');
-//
-// var MyReadStream = function() {
-//   Readable.call(this, {objectMode: true});
-//   //this.data = data;
-//   this.curIndex = 0;
-// };
-// util.inherits(MyReadStream, Readable);
-
-// var app = require('express')();
-// var http = require('http').Server(app);
-// var io = require('socket.io')(http);
-// var port = process.env.PORT || 8001;
-//
-// app.get('/', function(req, res){
-//   res.sendFile(__dirname + '/index.html');
-// });
-//
-// io.on('connection', function(socket){
-//   socket.on('chat message', function(msg){
-//     io.emit('chat message', msg);
-//   });
-// });
-//
-// http.listen(port, function(){
-//   console.log('listening on *:' + port);
-// });

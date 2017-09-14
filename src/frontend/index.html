@@ -347,7 +347,7 @@ oninput="controls.persistence=this.value; persistenceOutput.value=parseFloat(thi
 </td></tr>
 <tr><td>
 &nbsp; <input id="hideGrid" type="checkbox"
-onchange="controls.grid=!this.checked; if (Render) Render.screenTexture = Render.loadTexture('noise.jpg');"> Hide graticule
+onchange="controls.grid=!this.checked; if (Render) Render.screenTexture = Render.loadTexture('static/noise.jpg');"> Hide graticule
 </td></tr>
 </table>
 </td>
@@ -747,154 +747,95 @@ var Controls = {
     }
 </script>
 
-<script src="oscilloscope.js"></script>
-<script src="socketClient.js"></script>
+<script src="static/oscilloscope.js"></script>
+<script src="static/socketClient.js"></script>
 <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
 <script>
-
   var measureInterval = 1000;
   var receiveBuffer = [];
   var bufferOffset = 0;
   var audioContext =AudioSystem.audioContext;
   var accumulator = 0;
+  var byteAccumulator = 0;
   var bufferSize = 1024;
   var myPCMProcessingNode = audioContext.createScriptProcessor(bufferSize, 1, 1);
-
   var content = null;
   var rateDisplay = null;
 
-    $(function () {
-      content = document.getElementById('content');
-      rateDisplay = document.getElementById('rate');
-    });
-  // var context = new webkitAudioContext();
-  //
-  // audio.onmessage = function(data){
-  //     var buf  = data.data;
-  //     d = data;
-  //     context.decodeAudioData(
-  //         buf,
-  //         function(buffer){    console.log(buffer);    },     //success handler
-  //         function(err){   console.log('error: ', err)    }   //error handler
-  //     );
-  // }
+  $(function () {
+    content = document.getElementById('content');
+    rateDisplay = document.getElementById('rate');
+  });
 
   var socketClient = StreamingSocketClient.createSocket();
   socketClient.socket.onopen = function(event) {
 
-    customSetInterval(showRate, measureInterval);
+    customSetInterval(showRate, measureInterval); // SHOw PACKET RATE
     myPCMProcessingNode.onaudioprocess = function(e) {
       if(receiveBuffer.length >= bufferSize) {
         var output = e.outputBuffer.getChannelData(0);
-        // fill output buffer with received data...
-        // output = receiveBuffer.slice(0, receiveBuffer.length);
-        // receiveBuffer.splice(0, receiveBuffer.length);
-
         for (var i = 0; i < bufferSize; i++) {
            // Generate and copy over PCM samples.
            output[i] = receiveBuffer[i];
         }
         receiveBuffer = [];
+
         // for (var i = 0; i < bufferSize; i++) {
         //    // Generate and copy over PCM samples.
         //    output[i] = Math.random() * 2 - 1;
         // }
-        console.log(`${Date.now()} just filled the  buffer with ${output.length} samples`);
+        //console.log(`${Date.now()} just filled the  buffer with ${output.length} samples`);
       }
-
     };
-    myPCMProcessingNode.connect(AudioSystem.scopeNode);
 
-      myPCMProcessingNode.connect(audioContext.destination);
-    //
+    myPCMProcessingNode.connect(AudioSystem.scopeNode); // VISUALISE
+    myPCMProcessingNode.connect(audioContext.destination); // AUDIOLISE
   }
+
   function appendReceiveBuffer(val, index, array) {
     receiveBuffer.push(val);
   }
+
   socketClient.socket.onmessage = function(event) {
-
-    // var buf  = data.data;
-    // d = data;
-    // context.decodeAudioData(
-    //     buf,
-    //     function(buffer){    console.log(buffer);    },     //success handler
-    //     function(err){   console.log('error: ', err)    }   //error handler
-    // );
-
-    //console.log('Client received a message',event);
-    //var tempArray = new Uint8Array(event.data);
+    console.log('Client received a message',event);
     var floatArray = new Float32Array(event.data);
-    console.log('Client received a message',floatArray);
+    //console.log('Client received a message',floatArray);
     floatArray.forEach(appendReceiveBuffer);
-    //receiveBuffer.push(new Float32Array)
-    //content.innerHTML += `Packet ${++packetCount}: ${tempArray[0]} ${tempArray[1]} ${tempArray[2]} ${tempArray[3]}<br/>`;
     accumulator++;
-
-    // if(receiveBuffer.length >= bufferSize){
-    // }
+    byteAccumulator += floatArray.byteLength;
   };
-
-//   function createSoundWithBuffer( buffer ) {
-//
-//   /*
-//     This audio context is unprefixed!
-//   */
-//   var context = new AudioContext();
-//
-//   var audioSource = context.createBufferSource();
-//   audioSource.connect( context.destination );
-//
-//   context.decodeAudioData( buffer, function( res ) {
-//
-//     audioSource.buffer = res;
-//
-//     /*
-//        Do something with the sound, for instance, play it.
-//        Watch out: all the sounds will sound at the same time!
-//     */
-//       audioSource.noteOn( 0 );
-//
-//   } );
-//
-// }
 
   socketClient.socket.onclose = function(event) {
     console.log('Client notified socket has closed', event);
   };
 
-// var accumulator = 0;
-// var rateInterval = setInterval(function(){
-//   rateDisplay.innerHTML = `${accumulator} packets/second`;
-//   accumulator = 0;
-// }, rateInterval);
-
-function showRate(){
-  rateDisplay.innerHTML = `${accumulator} packets/second`;
-  accumulator = 0;
-}
-
-function customSetInterval(func, time){
-  var lastTime = Date.now(),
-      lastDelay = time,
-      outp = {};
-
-  function tick(){
-      func();
-
-      var now = Date.now(),
-          dTime = now - lastTime;
-
-      lastTime = now;
-      lastDelay = time + lastDelay - dTime;
-      outp.id = setTimeout(tick, lastDelay);
+  function showRate(){
+    rateDisplay.innerHTML = `${accumulator} packets/second - ${byteAccumulator} bytes/second`;
+    accumulator = 0;
+    byteAccumulator = 0;
   }
-  outp.id = setTimeout(tick, time);
 
-  return outp;
-}
+  // UTIL
+  function customSetInterval(func, time){
+    var lastTime = Date.now(),
+        lastDelay = time,
+        outp = {};
 
+    function tick(){
+        func();
+
+        var now = Date.now(),
+            dTime = now - lastTime;
+
+        lastTime = now;
+        lastDelay = time + lastDelay - dTime;
+        outp.id = setTimeout(tick, lastDelay);
+    }
+    outp.id = setTimeout(tick, time);
+
+    return outp;
+  }
 </script>
-
 <div id="nav">
   <button onclick="socketClient.closeSocket()" >close</button>
   <button onclick="socketClient.togglePause()" >Toggle Pause</button>
