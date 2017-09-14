@@ -33,41 +33,41 @@ var AudioSystem =
 {
 	microphoneActive : false,
 
-    init : function (bufferSize)
-    {
-        window.AudioContext = window.AudioContext||window.webkitAudioContext;
-        this.audioContext = new window.AudioContext();
-        this.sampleRate = this.audioContext.sampleRate;
-        this.bufferSize = bufferSize;
-        this.timePerSample = 1/this.sampleRate;
-        this.oldXSamples = new Float32Array(this.bufferSize);
+  init : function (bufferSize)
+  {
+    window.AudioContext = window.AudioContext||window.webkitAudioContext;
+    this.audioContext = new window.AudioContext();
+    this.sampleRate = this.audioContext.sampleRate;
+    this.bufferSize = bufferSize;
+    this.timePerSample = 1/this.sampleRate;
+    this.oldXSamples = new Float32Array(this.bufferSize);
 		this.oldYSamples = new Float32Array(this.bufferSize);
-    	this.smoothedXSamples = new Float32Array(Filter.nSmoothedSamples);
-    	this.smoothedYSamples = new Float32Array(Filter.nSmoothedSamples);
+  	this.smoothedXSamples = new Float32Array(Filter.nSmoothedSamples);
+  	this.smoothedYSamples = new Float32Array(Filter.nSmoothedSamples);
 
-    	if (!(navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia))
-    	{
-    		microphoneOutput.value = "unavailable in this browser";
-    	}
-    },
+  	if (!(navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia))
+  	{
+  		microphoneOutput.value = "unavailable in this browser";
+  	}
+  },
 
-    startSound : function()
-    {
-    	var audioElement = document.getElementById("audioElement");
-    	this.source = this.audioContext.createMediaElementSource(audioElement);
+  startSound : function()
+  {
+  	var audioElement = document.getElementById("audioElement");
+  	this.source = this.audioContext.createMediaElementSource(audioElement);
 		this.audioVolumeNode = this.audioContext.createGain();
 
 		this.generator = this.audioContext.createScriptProcessor(this.bufferSize, 2, 2);
 		this.generator.onaudioprocess = SignalGenerator.generate;
 
-        this.scopeNode = this.audioContext.createScriptProcessor(this.bufferSize, 2, 2);
-        this.scopeNode.onaudioprocess = doScriptProcessor;
-        this.source.connect(this.scopeNode);
-    	this.generator.connect(this.scopeNode);
+    this.scopeNode = this.audioContext.createScriptProcessor(this.bufferSize, 2, 2);
+    this.scopeNode.onaudioprocess = doScriptProcessor;
+    this.source.connect(this.scopeNode);
+  	this.generator.connect(this.scopeNode);
 
-        this.scopeNode.connect(this.audioVolumeNode);
-        this.audioVolumeNode.connect(this.audioContext.destination);
-    },
+    this.scopeNode.connect(this.audioVolumeNode);
+    this.audioVolumeNode.connect(this.audioContext.destination);
+  },
 
     tryToGetMicrophone : function()
     {
