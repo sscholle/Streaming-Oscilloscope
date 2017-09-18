@@ -3,26 +3,16 @@ var app = express();
 var router = express.Router();
 var http = require('http').Server(app);
 var port = process.env.PORT || 8000;
+
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/src/frontend/index.html');
 });
-//app.use(express.static('public'));
-app.use('/static', express.static(__dirname+'/src/frontend/public'))
-//express.use(, );
-//router.use(express.static(__dirname + '/src/frontend/public'));
+
+app.use('/static', express.static(__dirname+'/src/frontend/public'));
+
 http.listen(port, function(){
   console.log('listening on *:' + port);
 });
-
-
-
-// use websocket server and listen to client connects
-// message responses will be echoed in uppercase
-
-// 1. setup HTTP server: python -m SimpleHTTPServer
-// 2. setup WebSocket sttreaming server: node stream-test.js
-// 3. open localhost:8000 and click -> connects
-//    - this opens a socket connection - server responds by writes data (Binay/blob style)
 
 
 // TODO: Try using WebRTC which will hopefully manage the traffic better

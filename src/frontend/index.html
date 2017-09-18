@@ -751,16 +751,16 @@ var Controls = {
 <script src="static/socketClient.js"></script>
 <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
 <script>
-  var measureInterval = 1000;
-  var receiveBuffer = [];
-  var bufferOffset = 0;
-  var audioContext =AudioSystem.audioContext;
-  var accumulator = 0;
-  var byteAccumulator = 0;
-  var bufferSize = 1024;
-  var myPCMProcessingNode = audioContext.createScriptProcessor(bufferSize, 1, 1);
-  var content = null;
-  var rateDisplay = null;
+
+  var measureInterval = 1000,
+    receiveBuffer = [],
+    audioContext = AudioSystem.audioContext,
+    packetCount = 0,
+    byteCount = 0,
+    bufferSize = 1024,
+    myPCMProcessingNode = audioContext.createScriptProcessor(bufferSize, 1, 1),
+    content = null,
+    rateDisplay = null;
 
   $(function () {
     content = document.getElementById('content');
@@ -768,9 +768,11 @@ var Controls = {
   });
 
   var socketClient = StreamingSocketClient.createSocket();
+
   socketClient.socket.onopen = function(event) {
 
-    customSetInterval(showRate, measureInterval); // SHOw PACKET RATE
+    util.customSetInterval(showRate, measureInterval); // SHOw PACKET RATE
+
     myPCMProcessingNode.onaudioprocess = function(e) {
       if(receiveBuffer.length >= bufferSize) {
         var output = e.outputBuffer.getChannelData(0);
@@ -789,7 +791,7 @@ var Controls = {
     };
 
     myPCMProcessingNode.connect(AudioSystem.scopeNode); // VISUALISE
-    myPCMProcessingNode.connect(audioContext.destination); // AUDIOLISE
+    //myPCMProcessingNode.connect(audioContext.destination); // AUDIOLISE
   }
 
   function appendReceiveBuffer(val, index, array) {
@@ -801,8 +803,8 @@ var Controls = {
     var floatArray = new Float32Array(event.data);
     //console.log('Client received a message',floatArray);
     floatArray.forEach(appendReceiveBuffer);
-    accumulator++;
-    byteAccumulator += floatArray.byteLength;
+    packetCount++;
+    byteCount += floatArray.byteLength;
   };
 
   socketClient.socket.onclose = function(event) {
@@ -810,31 +812,34 @@ var Controls = {
   };
 
   function showRate(){
-    rateDisplay.innerHTML = `${accumulator} packets/second - ${byteAccumulator} bytes/second`;
-    accumulator = 0;
-    byteAccumulator = 0;
+    rateDisplay.innerHTML = `${packetCount} packets/second - ${byteCount} bytes/second`;
+    packetCount = 0;
+    byteCount = 0;
   }
 
-  // UTIL
-  function customSetInterval(func, time){
-    var lastTime = Date.now(),
-        lastDelay = time,
-        outp = {};
+  var util = {
+    // UTIL
+    customSetInterval: function(func, time){
+      var lastTime = Date.now(),
+          lastDelay = time,
+          outp = {};
 
-    function tick(){
-        func();
+      function tick(){
+          func();
 
-        var now = Date.now(),
-            dTime = now - lastTime;
+          var now = Date.now(),
+              dTime = now - lastTime;
 
-        lastTime = now;
-        lastDelay = time + lastDelay - dTime;
-        outp.id = setTimeout(tick, lastDelay);
+          lastTime = now;
+          lastDelay = time + lastDelay - dTime;
+          outp.id = setTimeout(tick, lastDelay);
+      }
+      outp.id = setTimeout(tick, time);
+
+      return outp;
     }
-    outp.id = setTimeout(tick, time);
-
-    return outp;
   }
+
 </script>
 <div id="nav">
   <button onclick="socketClient.closeSocket()" >close</button>
